@@ -1,0 +1,121 @@
+* {
+    font-family: arial, sans-serif;
+}
+
+body {
+    background-color: #eeeeee;
+    margin: 0px auto;
+    display: block;
+    width: 950px;
+}
+
+nav, form, article {
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+nav {
+    float: left;
+    box-sizing: border-box;
+    width: 100%;
+    border-top: 1px solid #cccccc;
+    border-bottom: 1px solid #cccccc;
+}
+    
+nav a {
+    margin-right: 10px;
+}
+
+aside {
+    float: left;
+    width: 230px;
+}
+
+aside form {
+    border: 1px dotted #cccccc;
+}
+
+
+aside form * {
+    margin-bottom: 5px;
+}
+
+aside form h4,
+aside form p.status {
+    margin: 0px;
+}
+
+aside form p.status {
+    font-size: small;
+    color: red;
+}
+
+
+aside form input[type='text'] {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+aside form input[type='submit'],
+aside form input[type='file'],
+aside form input[type='reset'],
+aside form label {
+    display: block;
+    width: 100%;
+}
+
+aside form input#requestLineCheckbox,
+aside form input#headersCheckbox {
+   margin-left: 20px; 
+}
+
+aside form input.requestLine,
+aside form input.headers {
+   margin-left: 40px; 
+}
+
+
+main {
+    min-width: 715px;
+    margin-left: 5px;
+    float: left;
+}
+
+main article {
+    padding: 10px;
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+}
+
+main article h4 {
+    margin: 0px;
+    margin-bottom: 5px;
+}
+
+main article p {
+    margin: 5px;
+}
+
+main article p a {
+    margin-right: 10px;
+}
+
+main article table {
+    border-collapse: collapse;
+}
+
+main article table td, 
+main article table th {
+    max-width: 250px;
+    word-wrap: break-word;
+    border: 1px solid #cccccc;
+    padding: 5px;
+}
+
+main article table th {
+    text-align: center;
+}
+
+main article table tr:nth-child(even) {
+    background-color: #eeeeee;
+}

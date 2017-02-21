@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <title>Request Log</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="./log.js"></script>
+    <link href='./layout.css' rel='stylesheet' />
+</head>
+<body>
+    <header>
+        <h2>Request Log</h2>
+    </header>
+
+    <nav>
+       <a href='files.html'>File(s) Page</a>
+       <a href='./log.html'>Request Log Page</a>
+       <a href='./me.html'>About Me</a>
+    </nav>
+
+    <aside id='aside'>
+        <form action='./log.html' method='get'>
+            <h4>Serch</h4>
+            <input type='text' name='search' placeholder="Search Word">
+            <label><input id='allCheckbox' type='checkbox'>                  All</label>
+
+            <label><input id='requestLineCheckbox' type='checkbox'>       Request Line</label>
+            <label><input class='requestLine' type='checkbox' name='method'>       Method</label>
+            <label><input class='requestLine' type='checkbox' name='request_uri'>          URI</label>
+            <label><input class='requestLine' type='checkbox' name='http_version'> HTTP Version</label>
+
+            <label><input id='headersCheckbox' type='checkbox'>       Headers</label>
+            <label><input class='headers' type='checkbox' name='accept'>               Accpet</label>
+            <label><input class='headers' type='checkbox' name='accept_encoding'>      Accept-Encoding</label>
+            <label><input class='headers' type='checkbox' name='accept_language'>      Accept-Language</label>
+            <label><input class='headers' type='checkbox' name='connection'>           Connection</label>
+            <label><input class='headers' type='checkbox' name='host'>                 Host</label>
+            <label><input class='headers' type='checkbox' name='user_agent'>           User-Agent</label>
+            <label><input class='headers' type='checkbox' name='access_time'>          Access Time</label>
+
+            <input type='reset' value='Reset'/>
+            <input type='submit' value='Search'/>
+        </form>
+    </aside>
+
+    <main><article>
+        <h4>Search Result</h4>
+        <p id='d'></p>
+        <table>
+              <tr>
+                <th>Company</th>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Country</th>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Contact</th>
+                <th>Country</th>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Country</th>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Country</th>
+              </tr>
+              <tr>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+              </tr>
+              <tr>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+              </tr>
+              <tr>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                <td>Ernst Handel</td>
+                <td>Roland Mendel</td>
+                <td>Austria</td>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+              </tr>
+              <tr>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                <td>Island Trading</td>
+                <td>Helen Bennett</td>
+                <td>UK</td>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+              </tr>
+              <tr>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                <td>Laughing Bacchus Winecellars</td>
+                <td>Yoshi Tannamuri</td>
+                <td>Canada</td>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+              </tr>
+              <tr>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                <td>Magazzini Alimentari Riuniti</td>
+                <td>Giovanni Rovelli</td>
+                <td>Italy</td>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+
+            </table>
+        </article></main>
+
+    <script type='text/javascript'>
+    </script>
+</body>
+</html>
