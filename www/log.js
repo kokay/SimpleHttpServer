@@ -91,12 +91,11 @@ function headersClassCheckboxSetup() {
 function changeWidth() {
     var main = document.getElementsByTagName('main')[0];
     var aside = document.getElementsByTagName('aside')[0];
-    var article = document.getElementsByTagName('article')[0];
     var table = document.getElementsByTagName('table')[0];
 
-    var articlePadding = parseInt(getComputedStyle(article, null).getPropertyValue('padding'));
+    var articlePadding = parseInt($('article').css('padding-left')) + parseInt($('article').css('padding-right'))
     main.style.width = articlePadding * 2 + table.offsetWidth + 'px';
 
-    var mainMarginLeft = parseInt(getComputedStyle(main, null).getPropertyValue('margin-left'));
+    var mainMarginLeft = parseInt($('main').css('margin-left'));
     document.body.style.width = mainMarginLeft + aside.offsetWidth + main.offsetWidth + "px";
 }
