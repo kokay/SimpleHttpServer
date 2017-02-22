@@ -12,14 +12,16 @@ int main() {
         cin >> DatabaseHandler::databasePassword;
 
         SimpleHttpServer simpleHttpServer(portNum, threadPoolSize, rootDir);
+        cout << "Simple HTTP Serer starts." << endl;
         simpleHttpServer.Start();
 
+        cout << "Please type stop when it needs to be stopped." << endl;
         string stop;
         while(true) {
             cin >> stop;
             if (stop == "stop") break;
         }
-
+        cout << "Simple HTTP Serer stops." << endl;
         simpleHttpServer.Stop();
     } catch (system::system_error& ec) {
         cout << "Error occurred." << endl;

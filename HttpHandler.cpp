@@ -11,7 +11,7 @@
 
 HttpHandler::HttpHandler(std::shared_ptr<asio::ip::tcp::socket> socket, const string& rootDir)
     : socket(socket)
-    , requestBuf(4094)
+    , requestBuf()
     , responseStatusCode(200)
     , resourceSizeBytes(0)
     , rootDir(rootDir)
@@ -90,31 +90,100 @@ void HttpHandler::onRequestHeadersReceived(const system::error_code& ec, size_t 
     string headerLine, headerField, headerValue;
     istream requestStream(&requestBuf);
     while(getline(requestStream, headerLine, '\r')) {
+        requestStream.get();
         if (headerLine.empty()) break;
         istringstream iss(headerLine);
         if (!getline(iss, headerField, ':')) break;
         if (!getline(iss, headerValue)) break;
 
         requestHeaders[headerField] = headerValue;
-        requestStream.get();
     }
 
-//    string s; requestStream >> s;
-//    if (method == "POST") {
-//        std::ofstream ofs(rootDir + "/newFile.txt", std::ofstream::binary);
-//        char buf[1024 * 3];
-//        long long sofar = s.size();
-//        ofs << s;
-//        while (sofar < stoll(requestHeaders["Content-Length"])) {
-//            long long readSize = socket->read_some(asio::buffer(buf));
-//            ofs.write(buf, readSize);
-//            sofar += readSize;
-//        }
-//        ofs.close();
-//    }
+    if (method == "POST") {
+        long long size = stoll(requestHeaders["Content-Length"]);
+        asio::async_read(*socket.get(), requestBuf, asio::transfer_exactly(size - requestBuf.in_avail()),
+                         [this] (const system::error_code& ec, size_t byteTransferred)
+                         { onRequestPostBodyReceived(ec, byteTransferred); });
+    } else {
+        processRequest();
+    }
+}
 
+bool HttpHandler::parsePostBody() {
+    istream requestStream(&requestBuf);
+    string subDir, fileName;
+    string headerField, headerValue;
+    string line, preLine;
+
+    int idx = requestHeaders["Content-Type"].find_last_of("-");
+    string boundary = requestHeaders["Content-Type"].substr(idx + 1);
+    while(getline(requestStream, line)) if (line.find(boundary) != string::npos) break;
+    while(getline(requestStream, line, '\r')) {
+        requestStream.get();
+        if (line.empty()) break;
+    }
+    requestStream >> subDir;
+    if (subDir.empty() || subDir.front() != '/' || subDir.back() != '/') return false;
+
+    while(getline(requestStream, line)) if (line.find(boundary) != string::npos) break;
+    while(getline(requestStream, line, '\r')) {
+        requestStream.get();
+        if (line.empty()) break;
+
+        istringstream iss(line);
+        if (!getline(iss, headerField, ':')) break;
+        if (!getline(iss, headerValue)) break;
+
+        if (headerField == "Content-Disposition") {
+            int idx = headerValue.find("filename");
+            fileName = headerValue.substr(idx + 10);
+            fileName.pop_back();
+        }
+    }
+    if (fileName.empty()) return false;
+
+    long long size = requestBuf.in_avail();
+    unique_ptr<char[]> buf (new char[size]);
+    requestStream.read(buf.get(), size);
+
+    size -= boundary.size();
+    bool found = false;
+    while(!found) {
+        found = true;
+        for (long long i = 0; i < boundary.size(); ++i ) {
+            if (buf[size + i] != boundary[i]) {
+                found = false;
+                break;
+            }
+        }
+        size--;
+    }
+    size--;
+    while(buf[size] != '\r') size--;
+
+    std::ofstream ofs(rootDir + subDir + fileName, std::ofstream::binary);
+    if (!ofs.is_open()) return false;
+    ofs.write(buf.get(), size);
+    ofs.close();
+    return true;
+}
+
+
+
+void HttpHandler::onRequestPostBodyReceived(const system::error_code& ec, size_t bytesTransferred) {
+    if (ec != 0) {
+        cout << "Error occurred - HttpHandler::onRequestPostBodyReceived" << endl;
+        cout << "  Error code - " << ec.value() << endl;
+        cout << "  Message    - " << ec.message() << endl;
+        cout << endl;
+    }
+
+    if (parsePostBody()) {
+
+    }
     processRequest();
 }
+
 
 void HttpHandler::processRequest() {
 

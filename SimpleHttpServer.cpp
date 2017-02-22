@@ -24,7 +24,7 @@ void SimpleHttpServer::Start() {
     if (ec != 0) {
         cout << "Error occurred - SimpleHttpServer::Start" << endl;
         cout << "  Error code - " << ec.value() << endl;
-        cout << "  Message    - " << ec.message() << endl;
+        cout << "  Message    - " << rootDir << " " << ec.message() << endl;
         cout << endl;
         return;
     } else if (!filesystem::is_directory(rootDir)) {

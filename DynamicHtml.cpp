@@ -115,7 +115,7 @@ string DynamicHtml::getFilesPage(const string& queryString, const string& rootDi
     }
 
     filesPage += {
-                    "<input id='button' type='file' name='file' value='Choose File' multiple/>"
+                    "<input id='button' type='file' name='file' value='Choose File'/>"
                     "<input id='button' type='submit' value='Upload File'/>"
                 "</form>"
             "</aside>"

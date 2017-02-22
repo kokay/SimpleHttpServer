@@ -26,6 +26,8 @@ public:
 private:
     void onRequestLineReceived(const system::error_code& ec, size_t byteTransferred);
     void onRequestHeadersReceived(const system::error_code& ec, size_t byteTransferred);
+    void onRequestPostBodyReceived(const system::error_code& ec, size_t bytesTransferred);
+    bool parsePostBody();
     void processRequest();
     void sendResponse();
     void onResponseSent(const system::error_code& ec, size_t bytesTransferred);
