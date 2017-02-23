@@ -1,53 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset='UTF-8'>
     <title>Request Log</title>
-    <script src="modernizr-1.5.js"></script>
-    <link href="layout.css" rel="stylesheet" />
+    <link href='./layout.css' rel='stylesheet' />
 </head>
 <body>
     <header>
-        <h2>Request Log</h2>
+    <nav>
+       <h1>Request Log</h1>
+       <a href='./files.html'>Files</a>
+       <a href='./log.html'>Request Log</a> 
+       <a href='./projects.html'>Personal Projects</a> 
+    </nav>
     </header>
     
-    <nav>
-       <a href='./files.html'>File(s) Page</a>
-       <a href='./log.html'>Request Log Page</a> 
-       <a href='./me.html'>About Me</a> 
-    </nav>
-    
+    <main>
     <aside>
         <form action='.files.html'>
             <h4>Make Folder</h4>
             <input type='text' name='make_folder' placeholder='Folder Name ( A-Z, a-z, 0-9, -, _ )' 
-                   pattern="[A-Za-z0-9_-]+" title="Only A-Z, a-z, 0-9, -, _ can be used.">
+                      pattern="[A-Za-z0-9_-]+" title="Only A-Z, a-z, 0-9, -, _ can be used.">
             <input type='submit' value='Make Folder'/>
         </form>
         
-        <form action='.files.html'>
-            <h4>Upload File (Choose Folder)</h4>
-            <label><input type=radio name='dir' value=''>in 'hello' Folder </label>
-            <label><input type=radio name='dir' value=''>hello</label>
-            <label><input type=radio name='dir' value=''>hello</label>
-            <input id='button' type='file' value='Choose File'/>
-            <input id='button' type='submit' value='Upload File'/>
+        <form action='.files.html' method='post' enctype="multipart/form-data">
+            <h4>Upload File</h4>
+            <p>Cheese a file below</p>
+            <p><input type=radio name='dir' value=''>in hello<p>
+            <p><input type=radio name='dir' value=''>in hello</p>
+            <p><input type=radio name='dir' value=''>in hello</p>
+            <p><input type=radio name='dir' value=''>in hello</p>
+            <input type='file' value='Choose File'/>
+            <input type='submit' value='Upload File'/>
         </form>
-        
-        
     </aside>
     
-    <main>
+    <section>
         <article>
-            <h4>some some folder</h4>
-            <p>kojisFanny.jpg</p>
-            <p>kojisFanny.jpg</p>
-            <p>kojisFanny.jpg</p>
-            <p>kojisFanny.jpg</p>
-            <p>kojisFanny.jpg</p>
-        </article>
-        <article>
-            <h4>some some folder</h4>
+            <h2>some some folder</h2>
             <p>kojisFanny.jpg</p>
             <p>kojisFanny.jpg</p>
             <p>kojisFanny.jpg</p>
@@ -56,7 +47,7 @@
         </article>
         
         <article>
-            <h4>some some folder</h4>
+            <h2>some some folder</h2>
             <p>kojisFanny.jpg</p>
             <p>kojisFanny.jpg</p>
             <p>kojisFanny.jpg</p>
@@ -65,11 +56,14 @@
         </article>
         
         <article>
-            <h4>some some folder</h4>
+            <h2>some some folder</h2>
+            <p>kojisFanny.jpg</p>
+            <p>kojisFanny.jpg</p>
+            <p>kojisFanny.jpg</p>
+            <p>kojisFanny.jpg</p>
+            <p>kojisFanny.jpg</p>
         </article>
-        
+    </section>
     </main>
-    
-
 </body>
 </html>
