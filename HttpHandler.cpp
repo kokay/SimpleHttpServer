@@ -143,7 +143,8 @@ void HttpHandler::parsePostBody() {
             fileName.pop_back();
         }
     }
-    if (fileName.empty()) {
+
+    if (fileName.empty() || !DynamicHtml::isValidFileName(fileName)) {
         return;
     }
 

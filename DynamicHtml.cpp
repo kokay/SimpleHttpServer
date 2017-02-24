@@ -64,8 +64,8 @@ string DynamicHtml::getHtmlPage(const string& pageTitle, const string& headExtra
     };
 }
 
-bool DynamicHtml::isValidDirectoryName(const string& dirName) {
-    for (const char c : dirName) {
+bool DynamicHtml::isValidFileName(const string &name){
+    for (const char c : name) {
         if (!(c >= 'A' && c <= 'Z') &&
             !(c >= 'a' && c <= 'z') &&
             !(c >= '0' && c <= '9') &&
@@ -77,7 +77,7 @@ bool DynamicHtml::isValidDirectoryName(const string& dirName) {
 }
 
 bool DynamicHtml::createDirectory(const string& rootDir, const string& dirName) {
-    if (isValidDirectoryName(dirName))
+    if (isValidFileName(dirName))
         return filesystem::create_directories(rootDir + "/" + dirName);
 
     return false;
