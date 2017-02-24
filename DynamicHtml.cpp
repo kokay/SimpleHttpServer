@@ -32,12 +32,36 @@ string DynamicHtml::getDynamicHtmlPage(HttpHandler* handler) {
         pageName = requestUri;
     }
 
-    if (pageName == "/files.html") {
+    if (pageName == "/files") {
         return getFilesPage(queryString, handler->getRootDir());
-    } else if (pageName == "/log.html"){
+    } else if (pageName == "/log"){
         return getRequestLogPage(queryString, handler->getDatabaseHandler());
     }
     return "";
+}
+
+string DynamicHtml::getHtmlPage(const string& pageTitle, const string& headExtra, const string& main) {
+    return { u8""
+        "<html>"
+        "<head>"
+            "<meta charset='UTF-8'>"
+            "<title>" + pageTitle + "</title>"
+            + headExtra +
+            "<link href='./layout.css' rel='stylesheet' />"
+        "</head>"
+        "<body>"
+        "<header>"
+            "<nav>"
+                "<h1>" + pageTitle + "</h1>"
+                "<a href='./files'>Files</a>"
+                "<a href='./log'>Request Log</a>"
+                "<a href='./projects.html'>Personal Projects</a>"
+            "</nav>"
+        "</header>"
+        "<main>" + main + "</main>"
+        "</body>"
+        "</html>"
+    };
 }
 
 bool DynamicHtml::isValidDirectoryName(const string& dirName) {
@@ -67,169 +91,146 @@ string DynamicHtml::getFilesPage(const string& queryString, const string& rootDi
         }
     }
 
-    string filesPage = { u8""
-        "<!DOCTYPE html>"
-        "<html>"
-        "<head>"
-            "<meta charset='UTF-8'>"
-            "<title>Files</title>"
-            "<link href='./layout.css' rel='stylesheet' />"
-        "</head>"
-        "<body>"
-            "<header>"
-                 "<h2>Files</h2>"
-            "</header>"
-
-            "<nav>"
-                "<a href='./files.html'>File(s) Page</a>"
-                "<a href='./log.html'>Request Log Page</a>"
-                "<a href='./me.html'>About Me</a>"
-            "</nav>"
-
-            "<aside>"
-                "<form action='./files.html'>"
-                    "<h4>Make Folder</h4>"
-                    "<input type='text' name='make_dir' placeholder=' Folder Name'>"
-                    "<input type='submit' value='Make Folder'/>"
-    };
-
+    string status = "";
     if (!successCreatingDir) {
-        filesPage += "<p class='status'>Making Folder fails.</p>";
-        filesPage += "<p class='status'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
+        status += "<p class='status'>Making Folder fails.</p>";
+        status += "<p class='status'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
                 "If the folder already exists, then new folder can not be made.</p>";
     }
 
-    filesPage += {
-                "</form>"
-                "<form action='./files.html' method='post' enctype='multipart/form-data'>"
-                    "<h4>Upload File (Choose Folder)</h4>"
-    };
-
+    string radioButtons = "";
     vector<filesystem::directory_entry> directories{ filesystem::directory_entry(filesystem::path(rootDir)) };
     for (auto& de : filesystem::recursive_directory_iterator(rootDir))
         if (filesystem::is_directory(de)) directories.push_back(de);
 
     for (auto& dir : directories) {
         string dirPath = dir.path().generic_string().substr(rootDir.size()) + "/";
-        filesPage += "<label><input type=radio name='dir' value='" + dirPath + "'>in '" + dirPath + "'</label>";
+        radioButtons += "<p><input type=radio name='dir' value='" + dirPath + "'>in " + dirPath + "</p>";
     }
 
-    filesPage += {
-                    "<input id='button' type='file' name='file' value='Choose File'/>"
-                    "<input id='button' type='submit' value='Upload File'/>"
-                "</form>"
-            "</aside>"
-
-            "<main>"
-
-    };
-
+    string dirAndFiles = "";
     for (auto& dir : directories) {
         string dirPath = dir.path().generic_string().substr(rootDir.size()) + "/";
-        filesPage += "<article><h4>" + dirPath + "</h4>";
+        dirAndFiles += "<article><h2>" + dirPath + "</h2>";
         for (auto& de : filesystem::directory_iterator(dir)) {
             if (filesystem::is_regular_file(de)) {
                 string path = de.path().filename().string();
-                filesPage += "<p><a href='." + dirPath + path + "'>" + path + "</a></p>";
+                dirAndFiles += "<p><a href='." + dirPath + path + "'>" + path + "</a></p>";
             }
         }
-        filesPage += "</article>";
+        dirAndFiles += "</article>";
     }
 
-    filesPage += {
-            "</article>"
-            "</main>"
-        "</body>"
-        "</html>"
+    string main = { u8""
+        "<aside>"
+            "<form action='./files'>"
+                "<h4>Make Folder</h4>"
+                "<input type='text' name='make_folder' placeholder='Folder Name ( A-Z, a-z, 0-9, -, _ )'"
+                "pattern='[A-Za-z0-9_-]+' title='Only A-Z, a-z, 0-9, -, _ can be used.'>"
+                "<input type='submit' value='Make Folder'/>"
+                    + status +
+            "</form>"
+
+            "<form action='./files' method='post' enctype='multipart/form-data'>"
+                "<h4>Upload File</h4>"
+                "<p>Cheese a file below</p>"
+                    + radioButtons +
+                "<input type='file' value='Choose File'/>"
+                "<input type='submit' value='Upload File'/>"
+            "</form>"
+        "</aside>"
+        "<section>"
+                    + dirAndFiles +
+        "</section>"
     };
-    return filesPage;
+    return getHtmlPage("Files", "", main);
 }
 
 
 string DynamicHtml::getRequestLogPage(const string& queryString, DatabaseHandler* databaseHandler) {
-    string logPage = {u8""
-      "<!DOCTYPE html>"
-      "<html>"
-      "<head>"
-          "<meta charset='UTF-8'>"
-          "<title>Request Log</title>"
-          "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>"
-          "<script src='./log.js'></script>"
-          "<link href='./layout.css' rel='stylesheet' />"
-      "</head>"
-      "<body>"
-          "<header>"
-          "<h2>Request Log</h2>"
-          "</header>"
-
-          "<nav>"
-          "<a href='./files.html'>File(s) Page</a>"
-          "<a href='./log.html'>Request Log Page</a>"
-          "<a href='./me.html'>About Me</a>"
-          "</nav>"
-                "<aside>"
-                    "<form action='./log.html' method='get'>"
-                        "<h4>Search</h4>"
-                        "<input type='text' name='search' placeholder='Search Word'>"
-                        "<label><input id='allCheckbox' type='checkbox'>                  All</label>"
-                        "<label><input id='requestLineCheckbox' type='checkbox'>       Request Line</label>"
-                        "<label><input class='requestLine' type='checkbox' name='method'>       Method</label>"
-                        "<label><input class='requestLine' type='checkbox' name='request_uri'>          URI</label>"
-                        "<label><input class='requestLine' type='checkbox' name='http_version'> HTTP Version</label>"
-                        "<label><input id='headersCheckbox' type='checkbox'>       Headers</label>"
-                        "<label><input class='headers' type='checkbox' name='accept'>               Accpet</label>"
-                        "<label><input class='headers' type='checkbox' name='accept_encoding'>      Accept-Encoding</label>"
-                        "<label><input class='headers' type='checkbox' name='accept_language'>      Accept-Language</label>"
-                        "<label><input class='headers' type='checkbox' name='connection'>           Connection</label>"
-                        "<label><input class='headers' type='checkbox' name='host'>                 Host</label>"
-                        "<label><input class='headers' type='checkbox' name='user_agent'>           User-Agent</label>"
-                        "<label><input class='headers' type='checkbox' name='access_time'>          Access Time</label>"
-                        "<input type='reset' value='Reset'/>"
-                        "<input type='submit' value='Search'/>"
-                    "</form>"
-                "</aside>"
-          "<main><article>"
+    string headExtra = {
+            "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>"
+            "<script src='./log.js'></script>"
     };
 
+    string checkboxes = {
+        "<p><input id='allCheckbox' type='checkbox'> All</p>"
+        "<p><input id='requestLineCheckbox' type='checkbox'> Request Line</p>"
+    };
+
+    vector<pair<string, string>> queries = parseQuery(queryString);
+
     vector<vector<string>> res;
-    int numRows = databaseHandler->getQueryResults(parseQuery(queryString), &res);
+    for (const string& field : {"method", "request_uri", "http_version"}) {
+        auto it = find_if(queries.begin(), queries.end(), [&field](const pair<string, string>& query){return query.first == field;});
+        if (it != queries.end()) {
+            checkboxes += "<p><input class='requestLine' type='checkbox' name='" + field + "' checked>"  + field + "</p>";
+        } else {
+            checkboxes += "<p><input class='requestLine' type='checkbox' name='" + field + "'>"  + field + "</p>";
+        }
+    }
+
+    checkboxes += "<p><input id='headersCheckbox' type='checkbox'> Headers</p>";
+    for (const string& field : {"accept", "accept_encoding", "accept_language", "connection", "host", "user_agent", "access_time"}) {
+        auto it = find_if(queries.begin(), queries.end(), [&field](const pair<string, string>& query){return query.first == field;});
+        if (it != queries.end()) {
+            checkboxes += "<p><input class='headers' type='checkbox' name='" + field + "' checked>" + field + "</p>";
+        } else {
+            checkboxes += "<p><input class='headers' type='checkbox' name='" + field + "'>" + field + "</p>";
+        }
+    }
+    int numRows = databaseHandler->getQueryResults(queries, &res);
+
+    string table = "";
     if (numRows == -1) {
-        logPage += "<h4>Search Result - Error Occurred</h4><table></table>";
+        table += "<h2>Search Result - Error Occurred</h2><table></table>";
     } else if (numRows == 0) {
-        logPage += "<h4>Search Result - " + to_string(numRows) + " rows found</h4><table></table>";
+        table += "<h2>Search Result - " + to_string(numRows) + " rows found</h2><table></table>";
     } else {
-        logPage += "<h4>Search Result - " + to_string(numRows) + " rows found</h4>";
-        logPage += "<table><tr>";
+        table += "<h2>Search Result - " + to_string(numRows) + " rows found</h2>";
+        table += "<table><tr>";
         for (string& header : res[0])
-            logPage += "<th>" + header + "</th>";
-        logPage += "</tr>";
+            table += "<th>" + header + "</th>";
+        table += "</tr>";
 
         for (int i = 1; i < res.size(); ++i) {
-            logPage += "<tr>";
+            table += "<tr>";
             for (string& rowData : res[i]) {
-                logPage += "<td>" + rowData + "</td>";
+                table += "<td>" + rowData + "</td>";
             }
-            logPage += "</tr>";
+            table += "</tr>";
         }
-        logPage += "</table>";
-        logPage += "<p>";
+        table += "</table>";
+        table += "<p>";
 
         int idx = queryString.find("&row=");
         int i = 0;
         for (; i < numRows - 100; i += 100) {
-            logPage += "<a href='./log.html?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
-                       + to_string(i + 1) + " - " + to_string(i + 100) + "</a>";
+            table += "<a href='./log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
+                       + to_string(i + 1) + "-" + to_string(i + 100) + "</a>";
         }
-        logPage += "<a href='./log.html?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
-                   + to_string(i + 1) + " - " + to_string(numRows) + "</a>";
-        logPage += "</p>";
+        table += "<a href='./log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
+                   + to_string(i + 1) + "-" + to_string(numRows) + "</a>";
+        table += "</p>";
     }
 
-    logPage += {
-        "</article></main>"
-    "</body>"
-    "</html>"
+    string main = {
+            "<aside>"
+                "<form action='./log' method='get'>"
+                    "<h4>Search</h4>"
+                    "<input type='text' name='search' placeholder='Search Word'>"
+                        + checkboxes +
+                    "<input type='reset' value='Reset'/>"
+                    "<input type='submit' value='Search'/>"
+                "</form>"
+            "</aside>"
+
+            "<section>"
+                "<article>"
+                        + table +
+                "</article>"
+            "</section>"
     };
 
-    return logPage;
+    return getHtmlPage("Request Log", headExtra, main);
 }

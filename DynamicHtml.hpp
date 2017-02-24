@@ -20,6 +20,8 @@ public:
 private:
     static vector<pair<string, string>> parseQuery(const string& queryString);
 
+    static string getHtmlPage(const string& pageTitle, const string& headExtra, const string& main);
+
     static string getFilesPage(const string& queryString, const string& rootDir);
     static bool isValidDirectoryName(const string& dirName);
     static bool createDirectory(const string& rootDir, const string& dirName);
