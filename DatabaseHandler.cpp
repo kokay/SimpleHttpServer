@@ -10,14 +10,14 @@ string DatabaseHandler::databasePassword;
 
 DatabaseHandler::DatabaseHandler(const string &databaseName, const string &tableName) {
     driver = get_driver_instance();
-    con = driver->connect("tcp://127.0.0.1:3306", "root", databasePassword);
+    con = driver->connect("tcp://127.0.0.1:3306", "simpleHttpServer", "1234321");
 
     DatabaseHandler::databaseName = databaseName;
     DatabaseHandler::tableName = tableName;
 
-    createDatabase(databaseName);
+    //createDatabase(databaseName);
     useDatabase(databaseName);
-    createTable(tableName);
+    //createTable(tableName);
 }
 
 DatabaseHandler::~DatabaseHandler(){

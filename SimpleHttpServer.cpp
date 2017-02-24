@@ -42,6 +42,11 @@ void SimpleHttpServer::Start() {
         std::unique_ptr<std::thread> thread(new std::thread([this]() { ioService.run(); }));
         threadPool.push_back(move(thread));
     }
+
+    // check this
+    for (auto& thread : threadPool) {
+        thread->join();
+    }
 }
 
 void SimpleHttpServer::Stop() {
