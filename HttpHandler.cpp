@@ -11,7 +11,7 @@
 
 HttpHandler::HttpHandler(std::shared_ptr<asio::ip::tcp::socket> socket, const string& rootDir)
     : socket(socket)
-    , requestBuf()
+    , requestBuf(104857600)
     , responseStatusCode(200)
     , resourceSizeBytes(0)
     , rootDir(rootDir)
@@ -109,7 +109,7 @@ void HttpHandler::onRequestHeadersReceived(const system::error_code& ec, size_t 
     }
 }
 
-bool HttpHandler::parsePostBody() {
+void HttpHandler::parsePostBody() {
     istream requestStream(&requestBuf);
     string subDir, fileName;
     string headerField, headerValue;
@@ -123,8 +123,11 @@ bool HttpHandler::parsePostBody() {
         if (line.empty()) break;
     }
     requestStream >> subDir;
-    if (subDir.empty() || subDir.front() != '/' || subDir.back() != '/') return false;
+    if (subDir.empty() || subDir.front() != '/' || subDir.back() != '/') {
+        return;
+    }
 
+    string filename = "filename=\"";
     while(getline(requestStream, line)) if (line.find(boundary) != string::npos) break;
     while(getline(requestStream, line, '\r')) {
         requestStream.get();
@@ -135,37 +138,55 @@ bool HttpHandler::parsePostBody() {
         if (!getline(iss, headerValue)) break;
 
         if (headerField == "Content-Disposition") {
-            int idx = headerValue.find("filename");
-            fileName = headerValue.substr(idx + 10);
+            int idx = headerValue.find(filename);
+            fileName = headerValue.substr(idx + filename.size());
             fileName.pop_back();
         }
     }
-    if (fileName.empty()) return false;
+    if (fileName.empty()) {
+        return;
+    }
 
     long long size = requestBuf.in_avail();
     unique_ptr<char[]> buf (new char[size]);
     requestStream.read(buf.get(), size);
 
+    size = removeBoundary(boundary, buf.get(), size);
+    if (size == -1) {
+        return;
+    }
+
+    std::ofstream ofs(rootDir + subDir + fileName, std::ofstream::binary);
+    if (!ofs.is_open()) {
+        return;
+    }
+    ofs.write(buf.get(), size);
+    ofs.close();
+}
+
+long long HttpHandler::removeBoundary(const string& boundary, const char* buf, long long size) {
     size -= boundary.size();
-    bool found = false;
-    while(!found) {
+
+    bool found = true;
+    for(int i = 0; size >= boundary.size(), i < 30; ++i) {
         found = true;
         for (long long i = 0; i < boundary.size(); ++i ) {
             if (buf[size + i] != boundary[i]) {
-                found = false;
-                break;
+                found = false; break;
             }
         }
+        if (found) break;
         size--;
     }
-    size--;
-    while(buf[size] != '\r') size--;
+    if (!found) return -1;
 
-    std::ofstream ofs(rootDir + subDir + fileName, std::ofstream::binary);
-    if (!ofs.is_open()) return false;
-    ofs.write(buf.get(), size);
-    ofs.close();
-    return true;
+    size--;
+    while(buf[size] == '-') size--;
+
+    if (buf[size] == '\n') size--;
+    else return -1;
+    if (buf[size] == '\r') return size;
+    else return -1;
 }
 
 
@@ -178,9 +199,7 @@ void HttpHandler::onRequestPostBodyReceived(const system::error_code& ec, size_t
         cout << endl;
     }
 
-    if (parsePostBody()) {
-
-    }
+    parsePostBody();
     processRequest();
 }
 

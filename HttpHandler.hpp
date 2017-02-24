@@ -27,7 +27,9 @@ private:
     void onRequestLineReceived(const system::error_code& ec, size_t byteTransferred);
     void onRequestHeadersReceived(const system::error_code& ec, size_t byteTransferred);
     void onRequestPostBodyReceived(const system::error_code& ec, size_t bytesTransferred);
-    bool parsePostBody();
+    void parsePostBody();
+    long long removeBoundary(const string& boundary, const char* buf, long long size);
+
     void processRequest();
     void sendResponse();
     void onResponseSent(const system::error_code& ec, size_t bytesTransferred);

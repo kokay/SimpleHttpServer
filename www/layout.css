@@ -64,6 +64,11 @@ aside form p {
     margin-bottom: 5px;
 }
 
+aside form p.error {
+    color: red;
+    font-size: small;
+}
+
 aside form p input#requestLineCheckbox,
 aside form p input#headersCheckbox {
     margin-left: 20px;

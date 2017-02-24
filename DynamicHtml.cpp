@@ -93,8 +93,8 @@ string DynamicHtml::getFilesPage(const string& queryString, const string& rootDi
 
     string status = "";
     if (!successCreatingDir) {
-        status += "<p class='status'>Making Folder fails.</p>";
-        status += "<p class='status'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
+        status += "<p class='error'>Making Folder fails.</p>";
+        status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
                 "If the folder already exists, then new folder can not be made.</p>";
     }
 
@@ -103,9 +103,12 @@ string DynamicHtml::getFilesPage(const string& queryString, const string& rootDi
     for (auto& de : filesystem::recursive_directory_iterator(rootDir))
         if (filesystem::is_directory(de)) directories.push_back(de);
 
-    for (auto& dir : directories) {
-        string dirPath = dir.path().generic_string().substr(rootDir.size()) + "/";
+    string dirPath = directories[0].path().generic_string().substr(rootDir.size()) + "/";
+    radioButtons += "<p><input type=radio name='dir' value='" + dirPath + "' checked>in " + dirPath + "</p>";
+    for (int i = 1; i < directories.size(); ++i) {
+        string dirPath = directories[i].path().generic_string().substr(rootDir.size()) + "/";
         radioButtons += "<p><input type=radio name='dir' value='" + dirPath + "'>in " + dirPath + "</p>";
+
     }
 
     string dirAndFiles = "";
@@ -135,7 +138,7 @@ string DynamicHtml::getFilesPage(const string& queryString, const string& rootDi
                 "<h4>Upload File</h4>"
                 "<p>Cheese a file below</p>"
                     + radioButtons +
-                "<input type='file' value='Choose File'/>"
+                "<input type='file' name='file' value='Choose File'/>"
                 "<input type='submit' value='Upload File'/>"
             "</form>"
         "</aside>"
