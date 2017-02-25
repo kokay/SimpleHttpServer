@@ -216,6 +216,7 @@ void HttpHandler::processRequest() {
         return;
     }
 
+    if (requestUri == "/") requestUri = "/home.html";
     string resourceUri = rootDir + requestUri;
     if (!filesystem::exists(resourceUri)) {
         responseStatusCode = 404;
