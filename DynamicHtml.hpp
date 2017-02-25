@@ -23,7 +23,8 @@ private:
 
     static string getHtmlPage(const string& pageTitle, const string& headExtra, const string& main);
 
-    static string getFilesPage(const string& queryString, const string& rootDir);
+    static string getDirsPage(const string& queryString, const string& rootDir);
+    static string getFilesPage(const string& rootDir, const string& dirName);
     static bool createDirectory(const string& rootDir, const string& dirName);
 
     static string getRequestLogPage(const string& queryString, DatabaseHandler* databaseHandler);

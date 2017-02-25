@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Personal Projects</title>
     <meta charset="UTF-8">
     <link href="./layout.css" rel="stylesheet" />
 </head>
@@ -8,10 +9,11 @@
     
     <header>
     <nav>
-        <h1>My Personal Projects</h1>
-        <a href='./files'>Files</a>
-        <a href='./log'>Request Log</a>
-        <a href='./projects.html'>Personal Projects</a> 
+        <h1><a href='./home.html'><img src='./logo.png' height='65px' alt='kokayasu logo'></a></h1>
+        <a href='./home.html' class='hNav'>Home</a>
+        <a href='./projects.html' class='hNav' id='here'>Personal Projects</a>
+        <a href='./files' class='hNav'>Files</a>
+        <a href='./log' class='hNav'>Request Log</a>
     </nav>
     </header>
     
@@ -42,7 +44,6 @@
             
             <h4>More Details</h4>
             <p>This is making on Ubuntu and working on Ubuntu server on Google Cloud. For network programming, I use asio from boost C++ Libraries, and for now, GET and POST are implemented (not fully). I also use filesystem from boost C++ Libraries for making folder and making dynamic page(Files Page). On Request Log Page, I use MySql for my databese. This is build with CMake and Request Log Page use JQuery for radio buttons and changing body width.</p>
-            <iframe  src='https://www.youtube.com/embed/HiOOWDb4YjE'></iframe>
         </article>
         
         <article id='DesktopFileTransfer'>
@@ -60,7 +61,6 @@
             <h4>More Details</h4>
             <p>This is making on Qt Creator on Ubuntu. Qt is used for this UI. For network programming, I use asio from boost C++ Libraries (I had already code so I did not use Qt networking library for now).</p>
             
-            <iframe  src='https://www.youtube.com/embed/HiOOWDb4YjE'></iframe>
         </article>
         
         <article id='WiFiP2pAndroidFileTransfer'>
@@ -76,7 +76,6 @@
             <p>Android API, Android Studio, git, Windows</p>
             
             <h4>More Details</h4>
-            <iframe  src='https://www.youtube.com/embed/HiOOWDb4YjE'></iframe>
         </article>
         
         <article id='RocketNumberNine'>
@@ -92,7 +91,6 @@
             <p>Android API, Android Studio, git, Windows</p>
             
             <h4>More Details</h4>
-            <iframe  src='https://www.youtube.com/embed/HiOOWDb4YjE'></iframe>
         </article>
     </section>
     </main>

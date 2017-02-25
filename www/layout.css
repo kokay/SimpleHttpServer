@@ -1,5 +1,5 @@
 * {
-    font-family: arial, sans-serif;
+    //font-family: arial, sans-serif;
     margin: 0px;
     padding: 0px;
 }
@@ -10,18 +10,22 @@ a {
 
 a:hover {
     text-decoration: underline;
+    color: blue;
 }
 
 body {
     background-color: #eeeeee;
+    //background-image: url('./back.jpg');
+    //background-repeat: no-repeat;
+    //background-attachment: fixed;
+    
 }
 
 header {
     background-color: white;
+    padding-bottom: 8px;
     margin-bottom: 20px;
-    padding-bottom: 5px;
     border-bottom: 1px solid #cccccc;
-    box-shadow: 0px 5px 5px #888888;
 }
 
 header nav {
@@ -34,7 +38,19 @@ header nav h1 {
 }
 
 header nav a {
-   margin: 10px; 
+    color: #000000;
+    padding: 5px;
+    margin: 10px;
+}
+
+header nav a.hNav:hover {
+    text-decoration: none;
+    color: #000000;
+    border-bottom: 4px solid #999999;
+}
+
+header nav a#here {
+    border-bottom: 4px solid #cccccc;
 }
 
 main {
@@ -56,12 +72,14 @@ aside form {
 
 aside form h4 {
     padding: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px dotted #cccccc;
 }
 
 aside form p {
     display: block;
     margin-left: 5px;
-    margin-bottom: 5px;
+    margin-top: 10px;
 }
 
 aside form p.error {
@@ -104,11 +122,11 @@ section article {
     padding: 20px;
     background-color: white;
     border: 1px solid #cccccc;
-    box-shadow: 5px 5px 5px #888888;
+    box-shadow: 3px 3px 5px #bbbbbb;
 }
 
 section article h2 {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 section article h4 {
@@ -117,7 +135,8 @@ section article h4 {
 }
 
 section article p {
-    line-height: 1.3em;
+    font-size: 1.1em;
+    line-height: 1.5em;
     margin-left: 20px;
     margin-bottom: 10px;
     word-wrap: break-word;

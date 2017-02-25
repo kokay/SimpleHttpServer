@@ -111,9 +111,9 @@ void HttpHandler::onRequestHeadersReceived(const system::error_code& ec, size_t 
 
 void HttpHandler::parsePostBody() {
     istream requestStream(&requestBuf);
-    string subDir, fileName;
+    string dirName, fileName;
     string headerField, headerValue;
-    string line, preLine;
+    string line;
 
     int idx = requestHeaders["Content-Type"].find_last_of("-");
     string boundary = requestHeaders["Content-Type"].substr(idx + 1);
@@ -122,8 +122,8 @@ void HttpHandler::parsePostBody() {
         requestStream.get();
         if (line.empty()) break;
     }
-    requestStream >> subDir;
-    if (subDir.empty() || subDir.front() != '/' || subDir.back() != '/') {
+    requestStream >> dirName;
+    if (dirName.empty()) {
         return;
     }
 
@@ -144,7 +144,7 @@ void HttpHandler::parsePostBody() {
         }
     }
 
-    if (fileName.empty() || !DynamicHtml::isValidFileName(fileName)) {
+    if (fileName.empty()) {
         return;
     }
 
@@ -157,7 +157,7 @@ void HttpHandler::parsePostBody() {
         return;
     }
 
-    std::ofstream ofs(rootDir + subDir + fileName, std::ofstream::binary);
+    std::ofstream ofs(rootDir + "/" + dirName + "/" + fileName, std::ofstream::binary);
     if (!ofs.is_open()) {
         return;
     }

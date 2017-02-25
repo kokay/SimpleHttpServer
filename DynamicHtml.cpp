@@ -33,7 +33,7 @@ string DynamicHtml::getDynamicHtmlPage(HttpHandler* handler) {
     }
 
     if (pageName == "/files") {
-        return getFilesPage(queryString, handler->getRootDir());
+        return getDirsPage(queryString, handler->getRootDir());
     } else if (pageName == "/log"){
         return getRequestLogPage(queryString, handler->getDatabaseHandler());
     }
@@ -41,7 +41,7 @@ string DynamicHtml::getDynamicHtmlPage(HttpHandler* handler) {
 }
 
 string DynamicHtml::getHtmlPage(const string& pageTitle, const string& headExtra, const string& main) {
-    return { u8""
+    string page = { u8""
         "<html>"
         "<head>"
             "<meta charset='UTF-8'>"
@@ -52,16 +52,33 @@ string DynamicHtml::getHtmlPage(const string& pageTitle, const string& headExtra
         "<body>"
         "<header>"
             "<nav>"
-                "<h1>" + pageTitle + "</h1>"
-                "<a href='./files'>Files</a>"
-                "<a href='./log'>Request Log</a>"
-                "<a href='./projects.html'>Personal Projects</a>"
+                "<h1><a href='./home.html'><img src='./logo.png' height='65px' alt='kokayasu logo'></a></h1>"
+                "<a href='./home.html' class='hNav'>Home</a>"
+                "<a href='./projects.html' class='hNav'>Personal Projects</a>"
+    };
+
+    if (pageTitle == "Files") {
+        page += {
+                "<a href='./files' class='hNav' id='here'>Files</a>"
+                "<a href='./log' class='hNav'>Request Log</a>"
+        };
+
+    } else if (pageTitle == "Request Log") {
+        page += {
+                "<a href='./files' class='hNav'>Files</a>"
+                "<a href='./log' class='hNav'id='here'>Request Log</a>"
+        };
+    }
+
+    page += {
             "</nav>"
         "</header>"
         "<main>" + main + "</main>"
         "</body>"
         "</html>"
     };
+
+    return page;
 }
 
 bool DynamicHtml::isValidFileName(const string &name){
@@ -83,46 +100,86 @@ bool DynamicHtml::createDirectory(const string& rootDir, const string& dirName) 
     return false;
 }
 
-string DynamicHtml::getFilesPage(const string& queryString, const string& rootDir) {
-    bool successCreatingDir = true;
-    for (const pair<string, string>& query : parseQuery(queryString)) {
-        if (query.first == "make_dir") {
-            successCreatingDir = createDirectory(rootDir, query.second);
-        }
-    }
-
+string DynamicHtml::getFilesPage(const string& rootDir, const string& dirName) {
+    string path = rootDir + "/" + dirName;
+    string form = "", files = "";
     string status = "";
-    if (!successCreatingDir) {
-        status += "<p class='error'>Making Folder fails.</p>";
-        status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
-                "If the folder already exists, then new folder can not be made.</p>";
-    }
 
-    string radioButtons = "";
-    vector<filesystem::directory_entry> directories{ filesystem::directory_entry(filesystem::path(rootDir)) };
-    for (auto& de : filesystem::recursive_directory_iterator(rootDir))
-        if (filesystem::is_directory(de)) directories.push_back(de);
+    //status += "<p class='error'>Making Folder fails.</p>";
+    //status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
+    //        "If the folder already exists, then new folder can not be made.</p>";
 
-    string dirPath = directories[0].path().generic_string().substr(rootDir.size()) + "/";
-    radioButtons += "<p><input type=radio name='dir' value='" + dirPath + "' checked>in " + dirPath + "</p>";
-    for (int i = 1; i < directories.size(); ++i) {
-        string dirPath = directories[i].path().generic_string().substr(rootDir.size()) + "/";
-        radioButtons += "<p><input type=radio name='dir' value='" + dirPath + "'>in " + dirPath + "</p>";
-
-    }
-
-    string dirAndFiles = "";
-    for (auto& dir : directories) {
-        string dirPath = dir.path().generic_string().substr(rootDir.size()) + "/";
-        dirAndFiles += "<article><h2>" + dirPath + "</h2>";
-        for (auto& de : filesystem::directory_iterator(dir)) {
+    if (filesystem::exists(path)) {
+        form += {
+            "<form action='./files?folder=" + dirName + "' method='post' enctype='multipart/form-data'>"
+                "<h4>Upload File</h4>"
+                "<input type='hidden' name='dir' value='" + dirName +"'>"
+                "<input type='file' name='file' value='Choose File'/>"
+                "<input type='submit' value='Upload File'/>"
+                    + status +
+            "</form>"
+        };
+        files += "<article><h2>" + dirName + "</h2>";
+        for (auto& de : filesystem::directory_iterator(path)) {
             if (filesystem::is_regular_file(de)) {
                 string path = de.path().filename().string();
-                dirAndFiles += "<p><a href='." + dirPath + path + "'>" + path + "</a></p>";
+                files += "<p><a href='./" + dirName + "/" + path + "'>" + path + "</a></p>";
             }
         }
-        dirAndFiles += "</article>";
+        files += "</article>";
+    } else {
+        form += "<form></form>";
+        files += "<article><h2>" + dirName + " does not exist.</h2></article>";
     }
+
+    string explanation = {
+            "<article>"
+                    "<h2>Motivation</h2>"
+                    "<p>I wanted to know how POST method of HTTP works and decided to write code for it."
+                    "   Upload File uses POST.</p>"
+                    "</article>"
+    };
+
+    string main = { u8""
+        "<aside>" + form + "</aside>"
+        "<section>" +  explanation + files + "</section>"
+    };
+    return getHtmlPage("Files", "", main);
+}
+
+string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir) {
+    string status = "";
+    for (const pair<string, string>& query : parseQuery(queryString)) {
+        if (query.first == "make_folder") {
+            if (!createDirectory(rootDir, query.second)) {
+                status += "<p class='error'>Making Folder fails.</p>";
+                status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
+                        "If the folder already exists, then new folder can not be made.</p>";
+            }
+            break;
+        }
+
+        if (query.first == "folder") {
+            return getFilesPage(rootDir, query.second);
+        }
+    }
+
+    string dirs = "<article><h2>Folders</h2>";
+    for (auto& de : filesystem::directory_iterator(rootDir)) {
+        if (filesystem::is_directory(de)) {
+            string path = de.path().filename().string();
+            dirs += "<p><a href='./files?folder=" + path + "'>" + path + "</a></p>";
+        }
+    }
+    dirs += "</article>";
+
+    string explanation = {
+            "<article>"
+                    "<h2>Motivation</h2>"
+                    "<p>I wanted to know how POST method of HTTP works and decided to write code for it (Make Folder uses GET)."
+                    "   By clicking a folder name, go to inside of the folder and then files can be upload (Upload File uses POST).</p>"
+                    "</article>"
+    };
 
     string main = { u8""
         "<aside>"
@@ -133,18 +190,8 @@ string DynamicHtml::getFilesPage(const string& queryString, const string& rootDi
                 "<input type='submit' value='Make Folder'/>"
                     + status +
             "</form>"
-
-            "<form action='./files' method='post' enctype='multipart/form-data'>"
-                "<h4>Upload File</h4>"
-                "<p>Cheese a file below</p>"
-                    + radioButtons +
-                "<input type='file' name='file' value='Choose File'/>"
-                "<input type='submit' value='Upload File'/>"
-            "</form>"
         "</aside>"
-        "<section>"
-                    + dirAndFiles +
-        "</section>"
+        "<section>" + explanation + dirs + "</section>"
     };
     return getHtmlPage("Files", "", main);
 }
@@ -217,6 +264,13 @@ string DynamicHtml::getRequestLogPage(const string& queryString, DatabaseHandler
         table += "</p>";
     }
 
+    string explanation = {
+            "<article>"
+                    "<h2>Motivation</h2>"
+                    "<p>I wanted to make a program that communicates with SQL. This website uses MySql for the database.</p>"
+                    "</article>"
+    };
+
     string main = {
             "<aside>"
                 "<form action='./log' method='get'>"
@@ -229,6 +283,7 @@ string DynamicHtml::getRequestLogPage(const string& queryString, DatabaseHandler
             "</aside>"
 
             "<section>"
+                        + explanation +
                 "<article>"
                         + table +
                 "</article>"
