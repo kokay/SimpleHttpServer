@@ -39,7 +39,17 @@ void SimpleHttpServer::Start() {
     InitAccept();
 
     for (unsigned int i = 0; i < threadPoolSize; ++i) {
-        std::unique_ptr<std::thread> thread(new std::thread([this]() { ioService.run(); }));
+        std::unique_ptr<std::thread> thread(new std::thread([this]() {
+            for(;;) {
+                try {
+                    ioService.run();
+                } catch(const std::exception& ec) {
+                    cout << "Error occurred - SimpleHttpServer::Start" << endl;
+                    cout << "  Error code - " << ec.what() << endl;
+                    cout << endl;
+                }
+            }
+        }));
         threadPool.push_back(move(thread));
     }
 
