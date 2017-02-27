@@ -302,18 +302,6 @@ const string  HttpHandler::getRemoteIpAddress() {
     return remoteIpAddress;
 }
 
-const string& HttpHandler::getMethod() {
-    return method;
-}
-
-const string& HttpHandler::getRequestUri() {
-    return requestUri;
-}
-
-const string& HttpHandler::getHttpVersion() {
-    return httpVersion;
-}
-
 string HttpHandler::getRequestHeaderValue(const string& headerField) {
     auto it = requestHeaders.find(headerField);
     if (it != requestHeaders.end()) {
@@ -321,10 +309,6 @@ string HttpHandler::getRequestHeaderValue(const string& headerField) {
     } else {
         return "";
     }
-}
-
-const string& HttpHandler::getRootDir() {
-    return rootDir;
 }
 
 DatabaseHandler* HttpHandler::getDatabaseHandler() {

@@ -15,11 +15,12 @@ class HttpHandler {
 public:
     HttpHandler(std::shared_ptr<asio::ip::tcp::socket> socket, const string& rootDir);
     void Start();
-    const string&  getRootDir();
+    const string& getRootDir() const { return rootDir; };
+    const string& getMethod() const { return method; };
+    const string& getRequestUri() const { return requestUri; };
+    const string& getHttpVersion() const { return httpVersion; };
+
     const string  getRemoteIpAddress();
-    const string& getMethod();
-    const string& getRequestUri();
-    const string& getHttpVersion();
     string getRequestHeaderValue(const string& headerName);
     DatabaseHandler* getDatabaseHandler();
 
