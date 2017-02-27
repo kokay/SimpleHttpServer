@@ -119,14 +119,16 @@ string DynamicHtml::getFilesPage(const string& rootDir, const string& dirName) {
                     + status +
             "</form>"
         };
-        files += "<article><h2>" + dirName + "</h2>";
+        files += "<article><table><h2>" + dirName + "</h2>";
+        files += "<tr><th>File Name</th><th>File Size</th></tr></th>";
         for (auto& de : filesystem::directory_iterator(path)) {
             if (filesystem::is_regular_file(de)) {
                 string path = de.path().filename().string();
-                files += "<p><a href='./" + dirName + "/" + path + "'>" + path + "</a></p>";
+                files += "<tr><td><p><a href='./" + dirName + "/" + path + "'>" + path + "</a></p></td>";
+                files += "<td>" + to_string(filesystem::file_size(de)) + " B </td></tr>";
             }
         }
-        files += "</article>";
+        files += "</table></article>";
     } else {
         form += "<form></form>";
         files += "<article><h2>" + dirName + " does not exist.</h2></article>";
@@ -158,20 +160,25 @@ string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir
             }
             break;
         }
-
         if (query.first == "folder") {
             return getFilesPage(rootDir, query.second);
         }
     }
 
-    string dirs = "<article><h2>Folders</h2>";
+    string dirs = "<article><h2>Folders</h2><table>";
+    dirs += "<tr><th>Folder Name</th><th>Number of Files</th></tr></th>";
     for (auto& de : filesystem::directory_iterator(rootDir)) {
         if (filesystem::is_directory(de)) {
+            int numFiles = 0;
             string path = de.path().filename().string();
-            dirs += "<p><a href='./files?folder=" + path + "'>" + path + "</a></p>";
+            for (auto& f : filesystem::directory_iterator(de)) {
+                if (filesystem::is_regular_file(f)) numFiles++;
+            }
+            dirs += "<tr><td><p><a href='./files?folder=" + path + "'>" + path + "</a></p></td>";
+            dirs += "<td>" + to_string(numFiles) + " </td></tr>";
         }
     }
-    dirs += "</article>";
+    dirs += "</table></article>";
 
     string explanation = {
             "<article>"
