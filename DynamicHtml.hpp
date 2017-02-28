@@ -17,6 +17,7 @@ class DatabaseHandler;
 class DynamicHtml {
 public:
     static string getDynamicHtmlPage(HttpHandler* handler);
+    static bool createDirectory(const string& rootDir, const string& dirName);
     static bool isValidFileName(const string& name);
 private:
     static vector<pair<string, string>> parseQuery(const string& queryString);
@@ -25,9 +26,10 @@ private:
 
     static string getDirsPage(const string& queryString, const string& rootDir);
     static string getFilesPage(const string& rootDir, const string& dirName);
-    static bool createDirectory(const string& rootDir, const string& dirName);
 
     static string getRequestLogPage(const string& queryString, DatabaseHandler* databaseHandler);
+
+    static const string FILE_DIR;
 };
 
 

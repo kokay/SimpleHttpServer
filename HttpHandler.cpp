@@ -115,18 +115,24 @@ void HttpHandler::parsePostBody() {
     string headerField, headerValue;
     string line;
 
-    int idx = requestHeaders["Content-Type"].find_last_of("-");
-    string boundary = requestHeaders["Content-Type"].substr(idx + 1);
-    while(getline(requestStream, line)) if (line.find(boundary) != string::npos) break;
-    while(getline(requestStream, line, '\r')) {
-        requestStream.get();
-        if (line.empty()) break;
-    }
-    requestStream >> dirName;
-    if (dirName.empty()) {
+    string contentType = requestHeaders["Content-Type"];
+    string APPLICATION_X_WWW_FORM_URL_ENCODED = " application/x-www-form-urlencoded";
+    cout << contentType << endl;
+    cout << APPLICATION_X_WWW_FORM_URL_ENCODED << endl;
+    if (contentType == APPLICATION_X_WWW_FORM_URL_ENCODED) {
+        string dir = "";
+        while(getline(requestStream, line)) {
+            int idx = line.find("=");
+            if (idx != string::npos && line.size() > idx + 1) {
+               dir = line.substr(idx + 1);
+            }
+            DynamicHtml::createDirectory(rootDir, dir);
+        }
         return;
     }
 
+    int idx = requestHeaders["Content-Type"].find_last_of("-");
+    string boundary = requestHeaders["Content-Type"].substr(idx + 1);
     string filename = "filename=\"";
     while(getline(requestStream, line)) if (line.find(boundary) != string::npos) break;
     while(getline(requestStream, line, '\r')) {
@@ -157,7 +163,7 @@ void HttpHandler::parsePostBody() {
         return;
     }
 
-    std::ofstream ofs(rootDir + "/" + dirName + "/" + fileName, std::ofstream::binary);
+    std::ofstream ofs(rootDir  + requestUri + "/" + fileName, std::ofstream::binary);
     if (!ofs.is_open()) {
         return;
     }

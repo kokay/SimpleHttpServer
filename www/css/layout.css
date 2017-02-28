@@ -15,7 +15,7 @@ a:hover {
 
 body {
     background-color: #eeeeee;
-    background-image: url('./back.jpg');
+    background-image: url('../img/back.jpg');
     background-repeat: no-repeat;
     background-attachment: fixed;
     

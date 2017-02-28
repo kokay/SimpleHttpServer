@@ -8,6 +8,8 @@
 
 using namespace boost;
 
+const string DynamicHtml::FILE_DIR = "/files";
+
 vector<pair<string, string>> DynamicHtml::parseQuery(const string& queryString) {
     vector<pair<string, string>> queries;
     istringstream iss(queryString);
@@ -32,7 +34,10 @@ string DynamicHtml::getDynamicHtmlPage(HttpHandler* handler) {
         pageName = requestUri;
     }
 
-    if (pageName == "/files") {
+    if (pageName.find(FILE_DIR) == 0) {
+        if (pageName.size() > FILE_DIR.size())
+            return getFilesPage(handler->getRootDir(), pageName);
+
         return getDirsPage(queryString, handler->getRootDir());
     } else if (pageName == "/log"){
         return getRequestLogPage(queryString, handler->getDatabaseHandler());
@@ -47,20 +52,20 @@ string DynamicHtml::getHtmlPage(const string& pageTitle, const string& headExtra
             "<meta charset='UTF-8'>"
             "<title>" + pageTitle + "</title>"
             + headExtra +
-            "<link href='./layout.css' rel='stylesheet' />"
+            "<link href='/css/layout.css' rel='stylesheet' />"
         "</head>"
         "<body>"
         "<header>"
             "<nav>"
-                "<h1><a href='./home.html'><img src='./logo.png' height='65px' alt='kokayasu logo'></a></h1>"
-                "<a href='./home.html' class='hNav'>Home</a>"
-                "<a href='./projects.html' class='hNav'>Personal Projects</a>"
+                "<h1><a href='/home.html'><img src='/img/logo.png' height='65px' alt='kokayasu logo'></a></h1>"
+                "<a href='/home.html' class='hNav'>Home</a>"
+                "<a href='/projects.html' class='hNav'>Personal Projects</a>"
     };
 
     if (pageTitle == "Files") {
         page += {
-                "<a href='./files' class='hNav' id='here'>Files</a>"
-                "<a href='./log' class='hNav'>Request Log</a>"
+                "<a href='/files' class='hNav' id='here'>Files</a>"
+                "<a href='/log' class='hNav'>Request Log</a>"
         };
 
     } else if (pageTitle == "Request Log") {
@@ -95,13 +100,13 @@ bool DynamicHtml::isValidFileName(const string &name){
 
 bool DynamicHtml::createDirectory(const string& rootDir, const string& dirName) {
     if (isValidFileName(dirName))
-        return filesystem::create_directories(rootDir + "/" + dirName);
+        return filesystem::create_directories(rootDir + FILE_DIR + "/" + dirName);
 
     return false;
 }
 
 string DynamicHtml::getFilesPage(const string& rootDir, const string& dirName) {
-    string path = rootDir + "/" + dirName;
+    string path = rootDir + dirName;
     string form = "", files = "";
     string status = "";
 
@@ -110,28 +115,29 @@ string DynamicHtml::getFilesPage(const string& rootDir, const string& dirName) {
     //        "If the folder already exists, then new folder can not be made.</p>";
 
     if (filesystem::exists(path)) {
+        if (filesystem::is_regular_file(path)) return "";
+
         form += {
-            "<form action='./files?folder=" + dirName + "' method='post' enctype='multipart/form-data'>"
+            "<form action='" + dirName + "' method='post' enctype='multipart/form-data'>"
                 "<h4>Upload File</h4>"
-                "<input type='hidden' name='dir' value='" + dirName +"'>"
                 "<input type='file' name='file' value='Choose File'/>"
                 "<input type='submit' value='Upload File'/>"
                     + status +
             "</form>"
         };
-        files += "<article><table><h2>" + dirName + "</h2>";
+        files += "<article><table><h2>" + dirName.substr(FILE_DIR.size()) + "</h2>";
         files += "<tr><th>File Name</th><th>File Size</th></tr></th>";
         for (auto& de : filesystem::directory_iterator(path)) {
             if (filesystem::is_regular_file(de)) {
                 string path = de.path().filename().string();
-                files += "<tr><td><p><a href='./" + dirName + "/" + path + "'>" + path + "</a></p></td>";
+                files += "<tr><td><p><a href='" + dirName + "/" + path + "'>" + path + "</a></p></td>";
                 files += "<td>" + to_string(filesystem::file_size(de)) + " B </td></tr>";
             }
         }
         files += "</table></article>";
     } else {
         form += "<form></form>";
-        files += "<article><h2>" + dirName + " does not exist.</h2></article>";
+        files += "<article><h2>" + dirName.substr(FILE_DIR.size()) + " does not exist.</h2></article>";
     }
 
     string explanation = {
@@ -151,30 +157,33 @@ string DynamicHtml::getFilesPage(const string& rootDir, const string& dirName) {
 
 string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir) {
     string status = "";
-    for (const pair<string, string>& query : parseQuery(queryString)) {
-        if (query.first == "make_folder") {
-            if (!createDirectory(rootDir, query.second)) {
-                status += "<p class='error'>Making Folder fails.</p>";
-                status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
-                        "If the folder already exists, then new folder can not be made.</p>";
-            }
-            break;
-        }
-        if (query.first == "folder") {
-            return getFilesPage(rootDir, query.second);
-        }
-    }
+//    for (const pair<string, string>& query : parseQuery(queryString)) {
+//        if (query.first == "make_folder") {
+//            if (!createDirectory(rootDir, query.second)) {
+//                status += "<p class='error'>Making Folder fails.</p>";
+//                status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
+//                        "If the folder already exists, then new folder can not be made.</p>";
+//            }
+//            break;
+//        }
+//        if (query.first == "folder") {
+//            return getFilesPage(rootDir, query.second);
+//        }
+//    }
+
+
+
 
     string dirs = "<article><h2>Folders</h2><table>";
     dirs += "<tr><th>Folder Name</th><th>Number of Files</th></tr></th>";
-    for (auto& de : filesystem::directory_iterator(rootDir)) {
+    for (auto& de : filesystem::directory_iterator(rootDir + FILE_DIR)) {
         if (filesystem::is_directory(de)) {
             int numFiles = 0;
             string path = de.path().filename().string();
             for (auto& f : filesystem::directory_iterator(de)) {
                 if (filesystem::is_regular_file(f)) numFiles++;
             }
-            dirs += "<tr><td><p><a href='./files?folder=" + path + "'>" + path + "</a></p></td>";
+            dirs += "<tr><td><p><a href='/files/" + path + "'>" + path + "</a></p></td>";
             dirs += "<td>" + to_string(numFiles) + " </td></tr>";
         }
     }
@@ -190,7 +199,7 @@ string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir
 
     string main = { u8""
         "<aside>"
-            "<form action='./files'>"
+            "<form action='/files' method='post'>"
                 "<h4>Make Folder</h4>"
                 "<input type='text' name='make_folder' placeholder='Folder Name ( A-Z, a-z, 0-9, -, _ )'"
                 "pattern='[A-Za-z0-9_-]+' title='Only A-Z, a-z, 0-9, -, _ can be used.'>"
@@ -207,7 +216,7 @@ string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir
 string DynamicHtml::getRequestLogPage(const string& queryString, DatabaseHandler* databaseHandler) {
     string headExtra = {
             "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>"
-            "<script src='./log.js'></script>"
+            "<script src='/js/log.js'></script>"
     };
 
     string checkboxes = {
@@ -263,10 +272,10 @@ string DynamicHtml::getRequestLogPage(const string& queryString, DatabaseHandler
         int idx = queryString.find("&row=");
         int i = 0;
         for (; i < numRows - 100; i += 100) {
-            table += "<a href='./log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
+            table += "<a href='/log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
                        + to_string(i + 1) + "-" + to_string(i + 100) + "</a>";
         }
-        table += "<a href='./log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
+        table += "<a href='/log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
                    + to_string(i + 1) + "-" + to_string(numRows) + "</a>";
         table += "</p>";
     }
