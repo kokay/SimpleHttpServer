@@ -3,37 +3,38 @@
 <head>
     <meta charset='UTF-8'>
     <title>Request Log</title>
-    <link href='./layout.css' rel='stylesheet' />
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+    <script src="/js/files.js"></script>
+    <link href='/css/layout.css' rel='stylesheet' />
 </head>
 <body>
     <header>
     <nav>
        <h1>Request Log</h1>
-       <a href='./files.html'>Files</a>
-       <a href='./log.html'>Request Log</a> 
-       <a href='./projects.html'>Personal Projects</a> 
+        <a href='/home.html'>Home</a>
+       <a href='/files.html'>Files</a>
+       <a href='/log.html'>Request Log</a>
+       <a href='/projects.html'>Personal Projects</a>
     </nav>
     </header>
     
     <main>
     <aside>
-        <form action='.files.html' method='post'>
+        <form class='box' action='/files' method='post'>
             <h4>Make Folder</h4>
-            <input type='text' name='make_folder' placeholder='Folder Name ( A-Z, a-z, 0-9, -, _ )' 
+            <input type='text' name='make_folder' placeholder='Folder Name ( A-Z, a-z, 0-9, -, _ )'
                       pattern="[A-Za-z0-9_-]+" title="Only A-Z, a-z, 0-9, -, _ can be used.">
             <input type='submit' value='Make Folder'/>
         </form>
         
-        <form action='.files.html' method='post' enctype="multipart/form-data">
-            <h4>Upload File</h4>
-            <p>Cheese a file below</p>
-            <p><input type=radio name='dir' value=''>in hello<p>
-            <p><input type=radio name='dir' value=''>in hello</p>
-            <p><input type=radio name='dir' value=''>in hello</p>
-            <p><input type=radio name='dir' value=''>in hello</p>
-            <input type='file' value='Choose File'/>
-            <input type='submit' value='Upload File'/>
-        </form>
+        <div class='box'>
+            <h4>Choose Files</h4>
+            <input type='file' id='_file' multiple> 
+        </div>
+        
+        <div id='progressBox'class='box' hidden>
+            <input type='button' id='_submit' value='Upload File'>
+        </div>
     </aside>
     
     <section>

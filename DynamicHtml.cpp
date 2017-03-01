@@ -35,24 +35,31 @@ string DynamicHtml::getDynamicHtmlPage(HttpHandler* handler) {
     }
 
     if (pageName.find(FILE_DIR) == 0) {
-        if (pageName.size() > FILE_DIR.size())
+        if (pageName.size() > FILE_DIR.size()) {
+            if (handler->getMethod() == "POST") return getFileTable(handler->getRootDir(), pageName);
             return getFilesPage(handler->getRootDir(), pageName);
+        }
 
         return getDirsPage(queryString, handler->getRootDir());
     } else if (pageName == "/log"){
         return getRequestLogPage(queryString, handler->getDatabaseHandler());
+    } else if (pageName == "/logTable") {
+        return getRequestLogTable(queryString, handler->getDatabaseHandler());
+
     }
     return "";
 }
 
 string DynamicHtml::getHtmlPage(const string& pageTitle, const string& headExtra, const string& main) {
     string page = { u8""
+        "<!DOCTYPE html>"
         "<html>"
         "<head>"
             "<meta charset='UTF-8'>"
             "<title>" + pageTitle + "</title>"
+            "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>"
             + headExtra +
-            "<link href='/css/layout.css' rel='stylesheet' />"
+            "<link id='css' href='/css/layout.css' rel='stylesheet' />"
         "</head>"
         "<body>"
         "<header>"
@@ -107,72 +114,71 @@ bool DynamicHtml::createDirectory(const string& rootDir, const string& dirName) 
 
 string DynamicHtml::getFilesPage(const string& rootDir, const string& dirName) {
     string path = rootDir + dirName;
-    string form = "", files = "";
-    string status = "";
+    string headExtra = {
+            "<script src='/js/files.js'></script>"
+    };
 
-    //status += "<p class='error'>Making Folder fails.</p>";
-    //status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
-    //        "If the folder already exists, then new folder can not be made.</p>";
-
+    string form = "";
     if (filesystem::exists(path)) {
         if (filesystem::is_regular_file(path)) return "";
 
         form += {
-            "<form action='" + dirName + "' method='post' enctype='multipart/form-data'>"
-                "<h4>Upload File</h4>"
-                "<input type='file' name='file' value='Choose File'/>"
-                "<input type='submit' value='Upload File'/>"
-                    + status +
-            "</form>"
+            "<div class='box'>"
+                "<h4>Choose Files</h4>"
+                "<input type='file' id='file' multiple>"
+                "<p class='error'>Please choose less than or equal to 10 files.</p>"
+            "</div>"
+
+            "<div id='progressBox'class='box' hidden>"
+            "    <input type='button' value='Upload File'>"
+            "</div>"
         };
-        files += "<article><table><h2>" + dirName.substr(FILE_DIR.size()) + "</h2>";
-        files += "<tr><th>File Name</th><th>File Size</th></tr></th>";
-        for (auto& de : filesystem::directory_iterator(path)) {
-            if (filesystem::is_regular_file(de)) {
-                string path = de.path().filename().string();
-                files += "<tr><td><p><a href='" + dirName + "/" + path + "'>" + path + "</a></p></td>";
-                files += "<td>" + to_string(filesystem::file_size(de)) + " B </td></tr>";
-            }
-        }
-        files += "</table></article>";
-    } else {
-        form += "<form></form>";
-        files += "<article><h2>" + dirName.substr(FILE_DIR.size()) + " does not exist.</h2></article>";
     }
 
     string explanation = {
             "<article>"
-                    "<h2>Motivation</h2>"
-                    "<p>I wanted to know how POST method of HTTP works and decided to write code for it."
-                    "   Upload File uses POST.</p>"
-                    "</article>"
+                "<h2>Why I am making this page</h2>"
+                "<p>application/x-www-form-urlencoded and multipart/form-data has different structures, so I decided to"
+                "   make this page and make this server parse the POST request.</p>"
+                "<p>This page also uses AJAX to upload the files and load the result of the page.</p>"
+            "</article>"
     };
 
     string main = { u8""
         "<aside>" + form + "</aside>"
-        "<section>" +  explanation + files + "</section>"
+        "<section>"
+                                +  explanation +
+            "<article>" + getFileTable(rootDir, dirName) + "</article>"
+        "</section>"
     };
-    return getHtmlPage("Files", "", main);
+    return getHtmlPage("Files", headExtra, main);
+}
+
+string DynamicHtml::getFileTable(const string& rootDir, const string& dirName) {
+    string path = rootDir + dirName;
+
+    string fileTable = "<table>";
+    if (filesystem::exists(path)) {
+        if (filesystem::is_regular_file(path)) return "";
+
+        fileTable += "<tr><th>File Name</th><th>File Size</th></tr></th>";
+        for (const auto& de : filesystem::directory_iterator(path)) {
+            if (filesystem::is_regular_file(de)) {
+                string fileName = de.path().filename().string();
+                fileTable += "<tr><td><p><a href='" + dirName + "/" + fileName + "'>" + fileName + "</a></p></td>";
+                fileTable += "<td>" + to_string(filesystem::file_size(de)) + " B </td></tr>";
+            }
+        }
+    } else {
+        fileTable += "<h2>" + dirName.substr(FILE_DIR.size()) + " does not exist.</h2>";
+    }
+
+    fileTable += "</table>";
+    return fileTable;
 }
 
 string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir) {
     string status = "";
-//    for (const pair<string, string>& query : parseQuery(queryString)) {
-//        if (query.first == "make_folder") {
-//            if (!createDirectory(rootDir, query.second)) {
-//                status += "<p class='error'>Making Folder fails.</p>";
-//                status += "<p class='error'>Note : A-Z, a-z, 0-9, _, - can be only used for the folder name. "
-//                        "If the folder already exists, then new folder can not be made.</p>";
-//            }
-//            break;
-//        }
-//        if (query.first == "folder") {
-//            return getFilesPage(rootDir, query.second);
-//        }
-//    }
-
-
-
 
     string dirs = "<article><h2>Folders</h2><table>";
     dirs += "<tr><th>Folder Name</th><th>Number of Files</th></tr></th>";
@@ -191,15 +197,16 @@ string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir
 
     string explanation = {
             "<article>"
-                    "<h2>Motivation</h2>"
-                    "<p>I wanted to know how POST method of HTTP works and decided to write code for it (Make Folder uses GET)."
+                    "<h2>Why I am making this page</h2>"
+                    "<p>I wanted to know how POST method of HTTP works and decided to write code for it."
+                    "   For making folder, POST method is used and parse the POST request by this server program."
                     "   By clicking a folder name, go to inside of the folder and then files can be upload (Upload File uses POST).</p>"
                     "</article>"
     };
 
     string main = { u8""
         "<aside>"
-            "<form action='/files' method='post'>"
+            "<form class='box' action='/files' method='post'>"
                 "<h4>Make Folder</h4>"
                 "<input type='text' name='make_folder' placeholder='Folder Name ( A-Z, a-z, 0-9, -, _ )'"
                 "pattern='[A-Za-z0-9_-]+' title='Only A-Z, a-z, 0-9, -, _ can be used.'>"
@@ -215,96 +222,87 @@ string DynamicHtml::getDirsPage(const string& queryString, const string& rootDir
 
 string DynamicHtml::getRequestLogPage(const string& queryString, DatabaseHandler* databaseHandler) {
     string headExtra = {
-            "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>"
             "<script src='/js/log.js'></script>"
     };
 
     string checkboxes = {
-        "<p><input id='allCheckbox' type='checkbox'> All</p>"
-        "<p><input id='requestLineCheckbox' type='checkbox'> Request Line</p>"
+        "<label><input id='allCheckbox' type='checkbox'> All</label>"
+            "<label><input id='requestLineCheckbox' type='checkbox'> Request Line</label>"
+                "<label><input class='requestLine' type='checkbox' name='method'> method</label>"
+                "<label><input class='requestLine' type='checkbox' name='request_uri'> request_uri</label>"
+                "<label><input class='requestLine' type='checkbox' name='http_version'> http_version</label>"
+            "<label><input id='headersCheckbox' type='checkbox'> Headers</label>"
+                "<label><input class='headers' type='checkbox' name='accept'> accept</label>"
+                "<label><input class='headers' type='checkbox' name='accept_encoding'> accept_encoding</label>"
+                "<label><input class='headers' type='checkbox' name='accept_language'> accept_language</label>"
+                "<label><input class='headers' type='checkbox' name='connection'> connection</label>"
+                "<label><input class='headers' type='checkbox' name='host'> host</label>"
+                "<label><input class='headers' type='checkbox' name='user_agent'> user_agent</label>"
+                "<label><input class='headers' type='checkbox' name='access_time'> access_time</label>"
     };
-
-    vector<pair<string, string>> queries = parseQuery(queryString);
-
-    vector<vector<string>> res;
-    for (const string& field : {"method", "request_uri", "http_version"}) {
-        auto it = find_if(queries.begin(), queries.end(), [&field](const pair<string, string>& query){return query.first == field;});
-        if (it != queries.end()) {
-            checkboxes += "<p><input class='requestLine' type='checkbox' name='" + field + "' checked>"  + field + "</p>";
-        } else {
-            checkboxes += "<p><input class='requestLine' type='checkbox' name='" + field + "'>"  + field + "</p>";
-        }
-    }
-
-    checkboxes += "<p><input id='headersCheckbox' type='checkbox'> Headers</p>";
-    for (const string& field : {"accept", "accept_encoding", "accept_language", "connection", "host", "user_agent", "access_time"}) {
-        auto it = find_if(queries.begin(), queries.end(), [&field](const pair<string, string>& query){return query.first == field;});
-        if (it != queries.end()) {
-            checkboxes += "<p><input class='headers' type='checkbox' name='" + field + "' checked>" + field + "</p>";
-        } else {
-            checkboxes += "<p><input class='headers' type='checkbox' name='" + field + "'>" + field + "</p>";
-        }
-    }
-    int numRows = databaseHandler->getQueryResults(queries, &res);
-
-    string table = "";
-    if (numRows == -1) {
-        table += "<h2>Search Result - Error Occurred</h2><table></table>";
-    } else if (numRows == 0) {
-        table += "<h2>Search Result - " + to_string(numRows) + " rows found</h2><table></table>";
-    } else {
-        table += "<h2>Search Result - " + to_string(numRows) + " rows found</h2>";
-        table += "<table><tr>";
-        for (string& header : res[0])
-            table += "<th>" + header + "</th>";
-        table += "</tr>";
-
-        for (int i = 1; i < res.size(); ++i) {
-            table += "<tr>";
-            for (string& rowData : res[i]) {
-                table += "<td>" + rowData + "</td>";
-            }
-            table += "</tr>";
-        }
-        table += "</table>";
-        table += "<p>";
-
-        int idx = queryString.find("&row=");
-        int i = 0;
-        for (; i < numRows - 100; i += 100) {
-            table += "<a href='/log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
-                       + to_string(i + 1) + "-" + to_string(i + 100) + "</a>";
-        }
-        table += "<a href='/log?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
-                   + to_string(i + 1) + "-" + to_string(numRows) + "</a>";
-        table += "</p>";
-    }
 
     string explanation = {
             "<article>"
-                    "<h2>Motivation</h2>"
-                    "<p>I wanted to make a program that communicates with SQL. This website uses MySql for the database.</p>"
-                    "</article>"
+                "<h2>Why I am making this page</h2>"
+                "<p>I wanted to make a program that communicates with SQL. This website uses MySql for the database.</p>"
+                "<p>I use jQuery to manipulate the check boxes and AJAX to load the table without loading a whole page.</p>"
+            "</article>"
     };
 
     string main = {
             "<aside>"
-                "<form action='./log' method='get'>"
-                    "<h4>Search</h4>"
-                    "<input type='text' name='search' placeholder='Search Word'>"
-                        + checkboxes +
-                    "<input type='reset' value='Reset'/>"
-                    "<input type='submit' value='Search'/>"
+                    "<form class='box'>"
+                        "<h4>Search</h4>"
+                        "<input type='text' name='search' placeholder='Search Word'/>"
+                            + checkboxes +
+                        "<input type='reset' value='Reset'/>"
+                        "<input id='searchButton' type='button' value='Search'/>"
+                    "</form>"
                 "</form>"
             "</aside>"
 
             "<section>"
                         + explanation +
-                "<article>"
-                        + table +
+                "<article id='tableArticle'>"
+                        + getRequestLogTable(queryString, databaseHandler) +
                 "</article>"
             "</section>"
     };
 
     return getHtmlPage("Request Log", headExtra, main);
+}
+
+string DynamicHtml::getRequestLogTable(const string& queryString, DatabaseHandler* databaseHandler) {
+    vector<vector<string>> res;
+    int numRows = databaseHandler->getQueryResults(parseQuery(queryString), &res);
+
+    if (numRows == -1) return "<h2>Search Result - Error Occurred</h2><table></table>";
+    if (numRows == 0)  return "<h2>Search Result - " + to_string(numRows) + " rows found</h2><table></table>";
+
+    string table = "";
+    table += "<h2>Search Result - " + to_string(numRows) + " rows found</h2>";
+    table += "<table><tr>";
+    for (string& header : res[0])
+        table += "<th>" + header + "</th>";
+    table += "</tr>";
+
+    for (int i = 1; i < res.size(); ++i) {
+        table += "<tr>";
+        for (string& rowData : res[i]) {
+            table += "<td>" + rowData + "</td>";
+        }
+        table += "</tr>";
+    }
+    table += "</table>";
+
+    int idx = queryString.find("&row=");
+    int i = 0;
+    for (; i < numRows - 100; i += 100) {
+        table += "<a href='/logTable?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
+                 + to_string(i + 1) + "-" + to_string(i + 100) + "</a>";
+    }
+    table += "<a href='/logTable?" + queryString.substr(0, idx) + "&row=" + to_string(i) + "'>"
+             + to_string(i + 1) + "-" + to_string(numRows) + "</a>";
+
+    return table;
 }

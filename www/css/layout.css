@@ -23,9 +23,10 @@ body {
 
 header {
     background-color: white;
-    padding-bottom: 8px;
+    padding-bottom: 7px;
     margin-bottom: 20px;
     border-bottom: 1px solid #cccccc;
+    //box-shadow: 0px 2px 5px #000000;
 }
 
 header nav {
@@ -50,7 +51,7 @@ header nav a.hNav:hover {
 }
 
 header nav a#here {
-    border-bottom: 4px solid #cccccc;
+    border-bottom: 4px solid #666666;
 }
 
 main {
@@ -64,51 +65,60 @@ aside {
     width: 240px;
 }
 
-aside form {
+aside .box {
     padding: 5px;
     border: 1px dotted #cccccc;
     margin-bottom: 10px;
 }
 
-aside form h4 {
+aside .box h4 {
     padding: 5px;
     margin-bottom: 5px;
     border-bottom: 1px dotted #cccccc;
 }
 
-aside form p {
+aside p {
     display: block;
-    margin-left: 5px;
     margin-top: 10px;
 }
 
-aside form p.error {
-    color: red;
-    font-size: small;
-}
 
-aside form p input#requestLineCheckbox,
-aside form p input#headersCheckbox {
+aside .box label input#requestLineCheckbox,
+aside .box label input#headersCheckbox {
     margin-left: 20px;
 }
 
-aside form p input.requestLine,
-aside form p input.headers {
+aside .box label input.requestLine,
+aside .box label input.headers {
     margin-left: 40px;
 }
 
-aside form input[type='file'],
-aside form input[type='text'] {
+aside .box input[type='file'],
+aside .box input[type='text'] {
     box-sizing: border-box;
 }
 
-aside form input[type='file'],
-aside form input[type='text'],
-aside form input[type='submit'],
-aside form input[type='reset'] {
+aside .box label,
+aside .box progress,
+aside .box input[type='button'],
+aside .box input[type='file'],
+aside .box input[type='text'],
+aside .box input[type='submit'],
+aside .box input[type='reset'] {
     display: block;
     width: 100%;
     margin-bottom: 5px;
+}
+
+aside .box p.fileName {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+aside .box p.error {
+    color: red;
+    display: none;
 }
 
 section {
@@ -122,7 +132,7 @@ section article {
     padding: 20px;
     background-color: white;
     border: 1px solid #cccccc;
-    box-shadow: 3px 3px 5px #bbbbbb;
+    //box-shadow: 2px 2px 5px #000000;
 }
 
 section article h2 {
@@ -155,8 +165,9 @@ section article table {
 
 section article table td, 
 section article table th {
-    max-width: 250px;
+    max-width: 220px;
     word-wrap: break-word;
+    word-break: break-all;
     border: 1px solid #cccccc;
     padding: 5px;
 }
@@ -169,7 +180,7 @@ section article table tr:nth-child(even) {
     background-color: #eeeeee;
 }
 
-section article p a {
+section article a {
     margin-right: 10px;
 }
 

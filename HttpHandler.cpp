@@ -117,8 +117,6 @@ void HttpHandler::parsePostBody() {
 
     string contentType = requestHeaders["Content-Type"];
     string APPLICATION_X_WWW_FORM_URL_ENCODED = " application/x-www-form-urlencoded";
-    cout << contentType << endl;
-    cout << APPLICATION_X_WWW_FORM_URL_ENCODED << endl;
     if (contentType == APPLICATION_X_WWW_FORM_URL_ENCODED) {
         string dir = "";
         while(getline(requestStream, line)) {
@@ -320,3 +318,4 @@ string HttpHandler::getRequestHeaderValue(const string& headerField) {
 DatabaseHandler* HttpHandler::getDatabaseHandler() {
     return databaseHandler.get();
 }
+

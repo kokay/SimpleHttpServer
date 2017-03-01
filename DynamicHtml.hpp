@@ -26,8 +26,10 @@ private:
 
     static string getDirsPage(const string& queryString, const string& rootDir);
     static string getFilesPage(const string& rootDir, const string& dirName);
+    static string getFileTable(const string& rootDir, const string& dirName);
 
     static string getRequestLogPage(const string& queryString, DatabaseHandler* databaseHandler);
+    static string getRequestLogTable(const string& queryString, DatabaseHandler* databaseHandler);
 
     static const string FILE_DIR;
 };
