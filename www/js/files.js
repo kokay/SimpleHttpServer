@@ -5,43 +5,6 @@ $(document).ready(function(){
     file.change(showProgress);
 });
 
-var upload = function(){
-    var request;
-    var file = document.getElementById('file');
-    $(this).prop('disabled', true);
-    for (var i = 0; i < file.files.length; ++i) {
-        var data = new FormData();
-        data.append('file', file.files[i]);
-        request = new XMLHttpRequest();
-        request.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                $('table').html(this.responseText);
-                $('input[type="button"]').prop('disabled', false)
-                    .val("Done").click(function () {
-                        $('#progressBox').fadeOut();
-                        $('#file').val('');
-                    });
-            }
-        }
-        request.onprogress = progressHandlers[i];
-        request.open('POST', currentPath);
-        request.send(data);
-    }
-}
-
-var progressHandlers = [
-    function(event) { $('#progress0').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress1').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress2').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress3').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress4').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress5').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress6').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress7').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress8').val(Math.ceil(event.loaded/event.total) * 100);},
-    function(event) { $('#progress9').val(Math.ceil(event.loaded/event.total) * 100);}
-];
-
 function showProgress() {
     var progressBox = $('#progressBox');
     if (this.files.length == 0) {
@@ -67,6 +30,39 @@ function showProgress() {
     progressBox.append('<input type="button" value="Upload Files">');
     progressBox.fadeIn();
     
-    $('input[type="button"]').click(upload);
+    $('input[type="button"]').click(uploadStart);
 }
 
+function uploadStart() {
+    var i = 0;
+    var files = document.getElementById('file');
+    uploadFile(files, i);
+}
+
+function uploadFile(files, i) {
+    var data = new FormData();
+    data.append('file', files.files[i]);
+
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+	if (this.readyState == 4 && this.status == 200) {
+	    i++;
+	    if (i < files.files.length) {
+		uploadFile(files, i);
+	    } else {
+		$('table').html(this.responseText);
+		$('input[type="button"]').prop('disabled', false)
+		    .val("Done").click(function () {
+			$('#progressBox').fadeOut();
+			$('#file').val('');
+		    });
+	    }
+		
+	}
+    }
+    request.onprogress = function(event) {
+	$('#progress' + i).val(Math.ceil(event.loaded/event.total) * 100);
+    }
+    request.open('POST', currentPath);
+    request.send(data);
+}

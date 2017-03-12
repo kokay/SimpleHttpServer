@@ -157,6 +157,7 @@ section article iframe {
     height: 360px;
     display: block;
     margin: 0 auto;
+    margin-bottom: 10px;
 }
 
 section article table {
@@ -183,4 +184,3 @@ section article table tr:nth-child(even) {
 section article a {
     margin-right: 10px;
 }
-
