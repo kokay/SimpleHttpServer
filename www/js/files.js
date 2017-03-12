@@ -2,10 +2,10 @@ var currentPath = window.location.pathname;
 
 $(document).ready(function(){
     var file = $('input[type="file"]');
-    file.change(showProgress);
+    file.change(showProgressBar);
 });
 
-function showProgress() {
+function showProgressBar() {
     var progressBox = $('#progressBox');
     if (this.files.length == 0) {
         progressBox.fadeOut();
@@ -36,6 +36,7 @@ function showProgress() {
 function uploadStart() {
     var i = 0;
     var files = document.getElementById('file');
+    $('input[type="button"]').prop('disabled', true);
     uploadFile(files, i);
 }
 
@@ -60,8 +61,8 @@ function uploadFile(files, i) {
 		
 	}
     }
-    request.onprogress = function(event) {
-	$('#progress' + i).val(Math.ceil(event.loaded/event.total) * 100);
+    request.upload.onprogress = function(event) {
+	$('#progress' + i).val(event.loaded/event.total * 100);
     }
     request.open('POST', currentPath);
     request.send(data);
