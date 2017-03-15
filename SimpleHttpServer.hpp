@@ -6,6 +6,7 @@
 #define SIMPLEHTTPSERVER_SIMPLEHTTPSERVER_HPP
 
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 #include <thread>
 //#include "HttpHandler.hpp"
 #include "DatabaseHandler.hpp"
@@ -23,10 +24,12 @@ public:
     void Stop();
 private:
     void InitAccept();
-    void onAccept(const system::error_code& ec, std::shared_ptr<asio::ip::tcp::socket> socket);
+    void onAccept(const system::error_code& ec, std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket);
+    string getPassword();
 
     asio::io_service ioService;
     asio::ip::tcp::acceptor acceptor;
+    asio::ssl::context context;
 
     unique_ptr<asio::io_service::work> work;
     vector<unique_ptr<thread>> threadPool;

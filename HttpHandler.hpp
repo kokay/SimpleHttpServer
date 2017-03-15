@@ -6,6 +6,7 @@
 #define SIMPLEHTTPSERVER_HTTPHANDLER_HPP
 
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 
 using namespace std;
 using namespace boost;
@@ -13,7 +14,7 @@ using namespace boost;
 class SimpleHttpServer;
 class HttpHandler {
 public:
-    HttpHandler(std::shared_ptr<asio::ip::tcp::socket> socket, const string& rootDir);
+    HttpHandler(std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket, const string& rootDir);
     void Start();
     const string& getRootDir() const { return rootDir; };
     const string& getMethod() const { return method; };
@@ -36,7 +37,8 @@ private:
     void onResponseSent(const system::error_code& ec, size_t bytesTransferred);
     void onFinish();
 
-    std::shared_ptr<asio::ip::tcp::socket> socket;
+    //std::shared_ptr<asio::ip::tcp::socket> socket;
+    std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket;
 
     asio::streambuf requestBuf;
     string method, requestUri, httpVersion;

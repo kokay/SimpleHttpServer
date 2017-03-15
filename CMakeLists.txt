@@ -9,6 +9,9 @@ add_executable(SimpleHttpServer ${SOURCE_FILES})
 include_directories(/usr/include/cppconn)
 link_directories(/usr/lib)
 
+find_package(OpenSSL)
+target_link_libraries (SimpleHttpServer ${OPENSSL_LIBRARIES})
+
 find_package(Boost COMPONENTS REQUIRED system filesystem)
 target_link_libraries (SimpleHttpServer ${Boost_LIBRARIES})
 

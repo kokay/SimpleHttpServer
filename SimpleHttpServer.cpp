@@ -11,11 +11,23 @@
 SimpleHttpServer::SimpleHttpServer(const unsigned short portNum,
                                    const unsigned int threadPoolSize, const string& rootDir)
     : acceptor(ioService, asio::ip::tcp::endpoint(asio::ip::address_v4::any(), portNum))
+    , context(asio::ssl::context::sslv23)
     , portNum(portNum)
     , threadPoolSize(threadPoolSize)
     , rootDir(rootDir)
 {
     work.reset(new asio::io_service::work(ioService));
+    context.set_options(
+            asio::ssl::context::default_workarounds |
+            asio::ssl::context::no_sslv2 |
+            asio::ssl::context::no_sslv3 |
+            asio::ssl::context::no_tlsv1_1 |
+            asio::ssl::context::single_dh_use
+    );
+    context.set_password_callback(bind(&SimpleHttpServer::getPassword, this));
+    context.use_certificate_chain_file("server.pem");
+    context.use_private_key_file("server.pem", asio::ssl::context::pem);
+    context.use_tmp_dh_file("dh2048.pem");
 }
 
 void SimpleHttpServer::Start() {
@@ -59,6 +71,11 @@ void SimpleHttpServer::Start() {
     }
 }
 
+string SimpleHttpServer::getPassword() {
+    return "tmp";
+}
+
+
 void SimpleHttpServer::Stop() {
     acceptor.cancel();
     ioService.stop();
@@ -68,12 +85,13 @@ void SimpleHttpServer::Stop() {
 }
 
 void SimpleHttpServer::InitAccept() {
-    std::shared_ptr<asio::ip::tcp::socket> socket(new asio::ip::tcp::socket(ioService));
-    acceptor.async_accept(*socket.get(),
+    std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>>
+            socket(new asio::ssl::stream<asio::ip::tcp::socket>(ioService, context));
+    acceptor.async_accept(socket.get()->lowest_layer(),
                           [this, socket](const system::error_code& ec) { onAccept(ec, socket); });
 }
 
-void SimpleHttpServer::onAccept(const system::error_code& ec, std::shared_ptr<asio::ip::tcp::socket> socket) {
+void SimpleHttpServer::onAccept(const system::error_code& ec, std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket) {
     if (ec != 0) {
         cout << "Error occurred - Acceptor::onAccept" << endl;
         cout << "  Error code - " << ec.value() << endl;

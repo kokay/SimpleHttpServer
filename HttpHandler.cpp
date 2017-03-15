@@ -9,7 +9,7 @@
 #include "HttpHandler.hpp"
 #include "DynamicHtml.hpp"
 
-HttpHandler::HttpHandler(std::shared_ptr<asio::ip::tcp::socket> socket, const string& rootDir)
+HttpHandler::HttpHandler(std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket, const string& rootDir)
     : socket(socket)
     , requestBuf(104857600)
     , responseStatusCode(200)
@@ -19,9 +19,19 @@ HttpHandler::HttpHandler(std::shared_ptr<asio::ip::tcp::socket> socket, const st
 {}
 
 void HttpHandler::Start() {
-    asio::async_read_until(*socket.get(), requestBuf, "\r\n",
-                    [this] (const system::error_code& ec, size_t byteTransferred)
-                    { onRequestLineReceived(ec, byteTransferred); });
+    socket.get()->async_handshake(asio::ssl::stream_base::server,
+    [this](const system::error_code& ec){
+        if (ec != 0) {
+            cout << "Error occurred - HttpHandler::Start" << endl;
+            cout << "  Error code - " << ec.value() << endl;
+            cout << "  Message    - " << ec.message() << endl;
+            cout << endl;
+            delete this;
+        }
+        asio::async_read_until(*socket.get(), requestBuf, "\r\n",
+                               [this] (const system::error_code& ec, size_t byteTransferred)
+                               { onRequestLineReceived(ec, byteTransferred); });
+    });
 }
 
 
@@ -250,7 +260,7 @@ void HttpHandler::processRequest() {
 
 
 void HttpHandler::sendResponse() {
-    socket->shutdown(asio::ip::tcp::socket::shutdown_receive);
+    //socket->shutdown(asio::ip::tcp::socket::shutdown_receive);
 
     responseStatusLine = "HTTP/1.1 " + responseStatuses.at(responseStatusCode) + "\r\n";
     if (resourceSizeBytes != 0)
@@ -277,8 +287,16 @@ void HttpHandler::onResponseSent(const system::error_code& ec, size_t bytesTrans
     }
 
     databaseHandler->insertLog(this);
-    socket->shutdown(asio::ip::tcp::socket::shutdown_both);
-    onFinish();
+    socket->async_shutdown([this](const system::error_code& ec) {
+        if (ec != 0) {
+            cout << "Error occurred - HttpHandler::onResponseSent" << endl;
+            cout << "  Error code - " << ec.value() << endl;
+            cout << "  Message    - " << ec.message() << endl;
+            cout << endl;
+        }
+        onFinish();
+    });
+    //socket->shutdown(asio::ip::tcp::socket::shutdown_both);
 }
 
 void HttpHandler::onFinish() {
@@ -296,7 +314,7 @@ const map<unsigned int, string> HttpHandler::responseStatuses = {
 
 const string  HttpHandler::getRemoteIpAddress() {
     system::error_code ec;
-    string remoteIpAddress = socket->remote_endpoint(ec).address().to_string(ec);
+    string remoteIpAddress = socket->lowest_layer().remote_endpoint(ec).address().to_string(ec);
     if (ec != 0) {
         cout << "Error occurred - HttpHandler::getRemoteIpAddress" << endl;
         cout << "  Error code - " << ec.value() << endl;
