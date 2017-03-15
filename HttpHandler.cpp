@@ -27,7 +27,9 @@ void HttpHandler::Start() {
             cout << "  Message    - " << ec.message() << endl;
             cout << endl;
             delete this;
+            return;
         }
+
         asio::async_read_until(*socket.get(), requestBuf, "\r\n",
                                [this] (const system::error_code& ec, size_t byteTransferred)
                                { onRequestLineReceived(ec, byteTransferred); });

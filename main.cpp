@@ -2,7 +2,7 @@
 #include "SimpleHttpServer.hpp"
 
 int main() {
-    unsigned short portNum = 80;
+    unsigned short portNum = 443;
     unsigned int threadPoolSize = std::thread::hardware_concurrency();
     if (threadPoolSize == 0) threadPoolSize = 2;
     string rootDir = "../www";

@@ -11,7 +11,7 @@
 SimpleHttpServer::SimpleHttpServer(const unsigned short portNum,
                                    const unsigned int threadPoolSize, const string& rootDir)
     : acceptor(ioService, asio::ip::tcp::endpoint(asio::ip::address_v4::any(), portNum))
-    , context(asio::ssl::context::sslv23)
+    , context(asio::ssl::context::tlsv12_server)
     , portNum(portNum)
     , threadPoolSize(threadPoolSize)
     , rootDir(rootDir)
@@ -21,13 +21,14 @@ SimpleHttpServer::SimpleHttpServer(const unsigned short portNum,
             asio::ssl::context::default_workarounds |
             asio::ssl::context::no_sslv2 |
             asio::ssl::context::no_sslv3 |
-            asio::ssl::context::no_tlsv1_1 |
             asio::ssl::context::single_dh_use
     );
+
     context.set_password_callback(bind(&SimpleHttpServer::getPassword, this));
-    context.use_certificate_chain_file("server.pem");
-    context.use_private_key_file("server.pem", asio::ssl::context::pem);
-    context.use_tmp_dh_file("dh2048.pem");
+    context.use_certificate_chain_file("./ssl/chain.crt");
+    context.use_certificate_file("./ssl/kokayasu_com.crt", asio::ssl::context::pem);
+    context.use_private_key_file("./ssl/ec.key", asio::ssl::context::pem);
+    context.use_tmp_dh_file("./ssl/dh2048.pem");
 }
 
 void SimpleHttpServer::Start() {
@@ -56,7 +57,7 @@ void SimpleHttpServer::Start() {
                 try {
                     ioService.run();
                 } catch(const std::exception& ec) {
-                    cout << "Error occurred - SimpleHttpServer::Start" << endl;
+                    cout << "Error occurred - ioService.run()" << endl;
                     cout << "  Error code - " << ec.what() << endl;
                     cout << endl;
                 }
@@ -72,7 +73,9 @@ void SimpleHttpServer::Start() {
 }
 
 string SimpleHttpServer::getPassword() {
-    return "tmp";
+    string password;
+    cin >> password;
+    return password;
 }
 
 
